@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart';
 
-Uri test = Uri.parse('https://fuchsia-review.googlesource.com/changes/?O=81&S=0&n=25&q=owner:armansito@google.com');
-
 Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> params, {Map<String, dynamic> cookies}) async {
   Uri url = new Uri(
     scheme: "https",
@@ -42,8 +40,4 @@ Future<Map<int, int>> getAccountIDs() async {
     }
   }
   return accountChanges;
-}
-
-void main() {
-  print(test.query);
 }
