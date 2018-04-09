@@ -1,0 +1,4 @@
+name: GerritScraper
+description: Designed to pull data from Gerrit
+dependencies:
+  http:
