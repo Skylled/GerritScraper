@@ -2,6 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart';
 
+String makeCookie(Map<String, dynamic> cookies){
+  String cookie = "";
+  cookies.forEach((String key, dynamic value) {
+    cookie += "$key=$value; ";
+  });
+  if (cookie.length > 0)
+    return cookie.substring(0, cookie.length - 2);
+  return null;
+}
+
 Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> params, {Map<String, dynamic> cookies}) async {
   Uri url = new Uri(
     scheme: "https",
@@ -10,7 +20,7 @@ Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> 
     queryParameters: params,
   );
   // TODO: Double-check cookies functionality.
-  Response res = await get(url, headers: cookies);
+  Response res = await get(url, headers: {"Cookie": makeCookie(cookies)});
   return json.decode(res.body);
 }
 
