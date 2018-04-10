@@ -30,7 +30,7 @@ Future<Map<String, dynamic>> scrapeAccount(int accountID) async {
     return decJson.cast<String, dynamic>();
   } else {
     throw new HttpException("Status code: ${res.statusCode}");
-}
+  }
 }
 
 Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> params) async {
@@ -80,9 +80,9 @@ Future<Map<int, int>> getAccountChanges(String project, {List<Map<String, dynami
   }
   for (Map<String, dynamic> change in changes) {
     if (accountChanges.containsKey(change["owner"])) {
-      accountChanges[change["owner"]]++;
+      accountChanges[change["owner"]["_account_id"]]++;
     } else {
-      accountChanges[change["owner"]] = 1;
+      accountChanges[change["owner"]["_account_id"]] = 1;
     }
   }
   if (_debugging) {
