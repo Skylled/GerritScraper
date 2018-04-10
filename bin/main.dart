@@ -45,10 +45,15 @@ Future<List<Map<String, dynamic>>> getChanges(String project) async {
     start += 500;
   }
   if (_debugging) {
-    new File('${project}_changes_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(entries));
+    new File('logs/${project}_changes_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(entries));
   }
   return entries;
 }
+
+// TODO: updateChanges function
+// Takes in an MSD loaded from file
+// Processes 500 commits at a time, until a duplicate is found
+// When found, stop.
 
 Future<Map<int, int>> getAccountIDs({String project = "garnet"}) async {
   Map<int, int> accountChanges = {};
@@ -61,7 +66,7 @@ Future<Map<int, int>> getAccountIDs({String project = "garnet"}) async {
     }
   }
   if (_debugging) {
-    new File('${project}_accounts_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accountChanges));
+    new File('logs/${project}_accounts_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accountChanges));
   }
   return accountChanges;
 }
