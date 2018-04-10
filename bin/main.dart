@@ -22,9 +22,15 @@ String makeCookie(){
   return null;
 }
 
+// Future: de-dup code from these.
 Future<Map<String, dynamic>> scrapeAccount(int accountID) async {
   Response res = await get("https://fuchsia-review.googlesource.com/accounts/$accountID", headers: {"Cookie": makeCookie()});
-  return json.decode(res.body);
+  if (res.statusCode == HttpStatus.OK) {
+    Map decJson = json.decode(res.body.substring(5));
+    return decJson.cast<String, dynamic>();
+  } else {
+    throw new HttpException("Status code: ${res.statusCode}");
+}
 }
 
 Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> params) async {
@@ -36,7 +42,12 @@ Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> 
   );
   print("Scraping: ${url.toString()}");
   Response res = await get(url);
-  return json.decode(res.body);
+  if (res.statusCode == HttpStatus.OK) {
+    List decJson = json.decode(res.body.substring(5));
+    return decJson.cast<Map<String, dynamic>>();
+  } else {
+    throw new HttpException("Status code: ${res.statusCode}");
+  }
 }
 
 Future<List<Map<String, dynamic>>> getChanges(String project) async {
