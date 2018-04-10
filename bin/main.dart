@@ -23,7 +23,7 @@ String makeCookie(){
 }
 
 // Future: de-dup code from these.
-Future<Map<String, dynamic>> scrapeAccount(int accountID) async {
+Future<Map<String, dynamic>> scrapeAccount(String accountID) async {
   Response res = await get('https://fuchsia-review.googlesource.com/accounts/$accountID', headers: {'Cookie': makeCookie()});
   if (res.statusCode == HttpStatus.OK) {
     Map decJson = json.decode(res.body.substring(5));
@@ -73,16 +73,16 @@ Future<List<Map<String, dynamic>>> getChanges(String project) async {
 // Processes 500 commits at a time, until a duplicate is found
 // When found, stop.
 
-Future<Map<int, int>> getAccountChanges(String project, {List<Map<String, dynamic>> changes}) async {
-  Map<int, int> accountChanges = {};
+Future<Map<String, int>> getAccountsChanges(String project, {List<Map<String, dynamic>> changes}) async {
+  Map<String, int> accountChanges = {};
   if (changes == null) {
     changes = await getChanges(project ?? 'garnet');
   }
   for (Map<String, dynamic> change in changes) {
-    if (accountChanges.containsKey(change['owner']['_account_id'])) {
-      accountChanges[change['owner']['_account_id']]++;
+    if (accountChanges.containsKey(change['owner']['_account_id'].toString())) {
+      accountChanges[change['owner']['_account_id'].toString()]++;
     } else {
-      accountChanges[change['owner']['_account_id']] = 1;
+      accountChanges[change['owner']['_account_id'].toString()] = 1;
     }
   }
   if (_debugging) {
@@ -91,13 +91,13 @@ Future<Map<int, int>> getAccountChanges(String project, {List<Map<String, dynami
   return accountChanges;
 }
 
-Future<Map<int, Map<String, dynamic>>> getAccountNames(String project, {Map<int, int> accountChanges}) async {
-  Map<int, Map<String, dynamic>> accounts = {};
-  if (accountChanges == null) {
+Future<Map<String, Map<String, dynamic>>> getAccountsDetails(String project, {Map<String, int> accountsChanges}) async {
+  Map<String, Map<String, dynamic>> accounts = {};
+  if (accountsChanges == null) {
     print('No accountChanges, loading...');
-    accountChanges = await getAccountChanges(project);
+    accountsChanges = await getAccountsChanges(project);
   }
-  await accountChanges.forEach((int accountID, int changes) async {
+  await accountsChanges.forEach((String accountID, int changes) async {
     Map<String, dynamic> accountDetails = await scrapeAccount(accountID);
     accounts[accountID] = accountDetails;
   });
