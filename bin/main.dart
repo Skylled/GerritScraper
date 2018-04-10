@@ -94,3 +94,9 @@ Future<Map<int, Map<String, dynamic>>> getAccountNames(String project, {Map<int,
   return accounts;
 }
 
+main(List<String> args) {
+  // TODO: Switch on args[0] to handle arguments
+  getAccountNames("docs").then((Map<int, Map<String, dynamic>> accounts) {
+    print("Done & logged.");
+  });
+}
