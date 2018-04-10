@@ -12,9 +12,9 @@ bool _debugging = true;
 String makeCookie(){
   // TODO: Double-check cookies functionality.
   Map<String, dynamic> cookies = json.decode(new File('cookies.json').readAsStringSync());
-  String cookie = "";
+  String cookie = '';
   cookies.forEach((String key, dynamic value) {
-    cookie += "$key=$value; ";
+    cookie += '$key=$value; ';
   });
   // Strip the trailing semicolon and space.
   if (cookie.length > 0)
@@ -24,29 +24,29 @@ String makeCookie(){
 
 // Future: de-dup code from these.
 Future<Map<String, dynamic>> scrapeAccount(int accountID) async {
-  Response res = await get("https://fuchsia-review.googlesource.com/accounts/$accountID", headers: {"Cookie": makeCookie()});
+  Response res = await get('https://fuchsia-review.googlesource.com/accounts/$accountID', headers: {'Cookie': makeCookie()});
   if (res.statusCode == HttpStatus.OK) {
     Map decJson = json.decode(res.body.substring(5));
     return decJson.cast<String, dynamic>();
   } else {
-    throw new HttpException("Status code: ${res.statusCode}");
+    throw new HttpException('Status code: ${res.statusCode}');
   }
 }
 
 Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> params) async {
   Uri url = new Uri(
-    scheme: "https",
-    host: "fuchsia-review.googlesource.com",
+    scheme: 'https',
+    host: 'fuchsia-review.googlesource.com',
     path: endpoint,
     queryParameters: params,
   );
-  print("Scraping: ${url.toString()}");
+  print('Scraping: ${url.toString()}');
   Response res = await get(url);
   if (res.statusCode == HttpStatus.OK) {
     List decJson = json.decode(res.body.substring(5));
     return decJson.cast<Map<String, dynamic>>();
   } else {
-    throw new HttpException("Status code: ${res.statusCode}");
+    throw new HttpException('Status code: ${res.statusCode}');
   }
 }
 
@@ -76,17 +76,17 @@ Future<List<Map<String, dynamic>>> getChanges(String project) async {
 Future<Map<int, int>> getAccountChanges(String project, {List<Map<String, dynamic>> changes}) async {
   Map<int, int> accountChanges = {};
   if (changes == null) {
-    changes = await getChanges(project ?? "garnet");
+    changes = await getChanges(project ?? 'garnet');
   }
   for (Map<String, dynamic> change in changes) {
-    if (accountChanges.containsKey(change["owner"])) {
-      accountChanges[change["owner"]["_account_id"]]++;
+    if (accountChanges.containsKey(change['owner']['_account_id'])) {
+      accountChanges[change['owner']['_account_id']]++;
     } else {
-      accountChanges[change["owner"]["_account_id"]] = 1;
+      accountChanges[change['owner']['_account_id']] = 1;
     }
   }
   if (_debugging) {
-    new File('logs/${project ?? "unknown"}_account_changes_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accountChanges));
+    new File('logs/${project ?? 'unknown'}_account_changes_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accountChanges));
   }
   return accountChanges;
 }
@@ -94,7 +94,7 @@ Future<Map<int, int>> getAccountChanges(String project, {List<Map<String, dynami
 Future<Map<int, Map<String, dynamic>>> getAccountNames(String project, {Map<int, int> accountChanges}) async {
   Map<int, Map<String, dynamic>> accounts = {};
   if (accountChanges == null) {
-    print("No accountChanges, loading...");
+    print('No accountChanges, loading...');
     accountChanges = await getAccountChanges(project);
   }
   await accountChanges.forEach((int accountID, int changes) async {
@@ -102,14 +102,13 @@ Future<Map<int, Map<String, dynamic>>> getAccountNames(String project, {Map<int,
     accounts[accountID] = accountDetails;
   });
   if (_debugging) {
-    new File('logs/${project ?? "unknown"}_account_details_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accounts));
+    new File('logs/${project ?? 'unknown'}_account_details_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accounts));
   }
   return accounts;
 }
 
 main(List<String> args) {
   // TODO: Switch on args[0] to handle arguments
-  getAccountNames("docs").then((Map<int, Map<String, dynamic>> accounts) {
-    print("Done & logged.");
-  });
+  List docs_changes = json.decode(new File('logs/docs_changes_2018-04-10T11:07:27.070028.json').readAsStringSync());
+  getAccountChanges('docs', changes: docs_changes.cast<Map<String, dynamic>>());
 }
