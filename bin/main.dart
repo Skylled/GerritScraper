@@ -5,9 +5,12 @@ import 'package:http/http.dart';
 
 bool _debugging = true;
 
+// Reference guide: https://flutter.io/networking/#example-decoding-json-from-https-get
+
 // Future: Generate XSRF_TOKEN legitimately.
 
 String makeCookie(){
+  // TODO: Double-check cookies functionality.
   Map<String, dynamic> cookies = json.decode(new File('cookies.json').readAsStringSync());
   String cookie = "";
   cookies.forEach((String key, dynamic value) {
@@ -31,7 +34,6 @@ Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> 
     path: endpoint,
     queryParameters: params,
   );
-  // TODO: Double-check cookies functionality.
   print("Scraping: ${url.toString()}");
   Response res = await get(url);
   return json.decode(res.body);
@@ -42,7 +44,7 @@ Future<List<Map<String, dynamic>>> getChanges(String project) async {
   int start = 0;
   List<Map<String, dynamic>> entries = [];
   while (true) {
-    List<Map<String, dynamic>> newEntries = await scrape('changes', {'q': query, 'S': start});
+    List<Map<String, dynamic>> newEntries = await scrape('changes/', {'q': query, 'S': start.toString()});
     entries.addAll(newEntries);
     if (newEntries.length < 500) {
       break;
