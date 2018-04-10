@@ -3,3 +3,4 @@
 .vscode/settings.json
 pubspec.lock
 cookies.json
+logs/*
