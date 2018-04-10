@@ -5,7 +5,10 @@ import 'package:http/http.dart';
 
 bool _debugging = true;
 
-String makeCookie(Map<String, dynamic> cookies){
+// Future: Generate XSRF_TOKEN legitimately.
+
+String makeCookie(){
+  Map<String, dynamic> cookies = json.decode(new File('cookies.json').readAsStringSync());
   String cookie = "";
   cookies.forEach((String key, dynamic value) {
     cookie += "$key=$value; ";
@@ -24,8 +27,8 @@ Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> 
     queryParameters: params,
   );
   // TODO: Double-check cookies functionality.
-  print("Scraping ${cookies != null ? "with" : "without"} cookies: ${url.toString()}");
-  Response res = await get(url, headers: {"Cookie": makeCookie(cookies)});
+  print("Scraping: ${url.toString()}");
+  Response res = await get(url);
   return json.decode(res.body);
 }
 
