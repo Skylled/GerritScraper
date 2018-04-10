@@ -19,7 +19,12 @@ String makeCookie(){
   return null;
 }
 
-Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> params, {Map<String, dynamic> cookies}) async {
+Future<Map<String, dynamic>> scrapeAccount(int accountID) async {
+  Response res = await get("https://fuchsia-review.googlesource.com/accounts/$accountID", headers: {"Cookie": makeCookie()});
+  return json.decode(res.body);
+}
+
+Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> params) async {
   Uri url = new Uri(
     scheme: "https",
     host: "fuchsia-review.googlesource.com",
@@ -55,9 +60,11 @@ Future<List<Map<String, dynamic>>> getChanges(String project) async {
 // Processes 500 commits at a time, until a duplicate is found
 // When found, stop.
 
-Future<Map<int, int>> getAccountIDs({String project = "garnet"}) async {
+Future<Map<int, int>> getAccountChanges(String project, {List<Map<String, dynamic>> changes}) async {
   Map<int, int> accountChanges = {};
-  List<Map<String, dynamic>> changes = await getChanges(project);
+  if (changes == null) {
+    changes = await getChanges(project ?? "garnet");
+  }
   for (Map<String, dynamic> change in changes) {
     if (accountChanges.containsKey(change["owner"])) {
       accountChanges[change["owner"]]++;
@@ -66,7 +73,24 @@ Future<Map<int, int>> getAccountIDs({String project = "garnet"}) async {
     }
   }
   if (_debugging) {
-    new File('logs/${project}_accounts_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accountChanges));
+    new File('logs/${project ?? "unknown"}_account_changes_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accountChanges));
   }
   return accountChanges;
 }
+
+Future<Map<int, Map<String, dynamic>>> getAccountNames(String project, {Map<int, int> accountChanges}) async {
+  Map<int, Map<String, dynamic>> accounts = {};
+  if (accountChanges == null) {
+    print("No accountChanges, loading...");
+    accountChanges = await getAccountChanges(project);
+  }
+  await accountChanges.forEach((int accountID, int changes) async {
+    Map<String, dynamic> accountDetails = await scrapeAccount(accountID);
+    accounts[accountID] = accountDetails;
+  });
+  if (_debugging) {
+    new File('logs/${project ?? "unknown"}_account_details_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accounts));
+  }
+  return accounts;
+}
+
