@@ -18,12 +18,13 @@ String makeCookie(){
   });
   // Strip the trailing semicolon and space.
   if (cookie.length > 0)
-    return cookie.substring(0, cookie.length - 2);
+    return cookie.substring(0, cookie.length - 3);
   return null;
 }
 
 // Future: de-dup code from these.
 Future<Map<String, dynamic>> scrapeAccount(String accountID) async {
+  print("Scraping for account: $accountID");
   Response res = await get('https://fuchsia-review.googlesource.com/accounts/$accountID', headers: {'Cookie': makeCookie()});
   if (res.statusCode == HttpStatus.OK) {
     Map decJson = json.decode(res.body.substring(5));
@@ -101,14 +102,22 @@ Future<Map<String, Map<String, dynamic>>> getAccountsDetails(String project, {Ma
     Map<String, dynamic> accountDetails = await scrapeAccount(accountID);
     accounts[accountID] = accountDetails;
   });
+  List<Future> futures = [];
+  accountsChanges.forEach((String accountID, int changes){
+    futures.add(() async {
+      accounts[accountID] = await scrapeAccount(accountID);
+    }());
+  });
+  await Future.wait(futures);
   if (_debugging) {
     new File('logs/${project ?? 'unknown'}_account_details_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accounts));
   }
   return accounts;
 }
 
+// How do I want info organized in its final state?
+
 main(List<String> args) {
   // TODO: Switch on args[0] to handle arguments
-  List docs_changes = json.decode(new File('logs/docs_changes_2018-04-10T11:07:27.070028.json').readAsStringSync());
-  getAccountChanges('docs', changes: docs_changes.cast<Map<String, dynamic>>());
+  getAccountsDetails('garnet');
 }
