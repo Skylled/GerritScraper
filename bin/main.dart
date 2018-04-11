@@ -92,9 +92,8 @@ Future<Map<String, int>> getAccountsChanges(String project, {List<Map<String, dy
   return accountChanges;
 }
 
-// TODO: Refactor to a List<MSD>, as accountID is presently duplicated.
-Future<Map<String, Map<String, dynamic>>> getAccountsDetails(String project, {Map<String, int> accountsChanges}) async {
-  Map<String, Map<String, dynamic>> accounts = {};
+Future<List< Map<String, dynamic>>> getAccountsDetails(String project, {Map<String, int> accountsChanges}) async {
+  List<Map<String, dynamic>> accounts = [];
   if (accountsChanges == null) {
     print('No accountChanges, loading...');
     accountsChanges = await getAccountsChanges(project);
@@ -102,7 +101,7 @@ Future<Map<String, Map<String, dynamic>>> getAccountsDetails(String project, {Ma
   List<Future> futures = [];
   accountsChanges.forEach((String accountID, int changes){
     futures.add(() async {
-      accounts[accountID] = await scrapeAccount(accountID);
+      accounts.add(await scrapeAccount(accountID));
     }());
   });
   await Future.wait(futures);
