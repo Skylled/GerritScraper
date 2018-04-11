@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart';
 
-bool _debugging = true;
+bool _debugging = false;
 
 // Reference guide: https://flutter.io/networking/#example-decoding-json-from-https-get
 
@@ -24,7 +24,7 @@ String makeCookie(){
 
 // Future: de-dup code from these.
 Future<Map<String, dynamic>> scrapeAccount(String accountID) async {
-  print("Scraping for account: $accountID");
+  // print('Scraping for account: $accountID');
   Response res = await get('https://fuchsia-review.googlesource.com/accounts/$accountID', headers: {'Cookie': makeCookie()});
   if (res.statusCode == HttpStatus.OK) {
     Map decJson = json.decode(res.body.substring(5));
