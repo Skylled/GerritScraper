@@ -141,9 +141,47 @@ Future<void> generateNamesList(String project, {List<Map<String, dynamic>> accou
   new File('out/$project.txt').writeAsStringSync(output);
 }
 
+Future<void> makeCombinedNamesList() async {
+  List<String> projects = ['zircon', 'garnet', 'peridot', 'topaz'];
+  Map<String, Map<String, int>> projectAccountsChanges = {};
+  List<Map<String, dynamic>> projectAccountsDetails = [];
+  for (String project in projects) {
+    projectAccountsChanges[project] = await getAccountsChanges(project);
+    projectAccountsDetails.addAll(await getAccountsDetails(project, accountsChanges: projectAccountsChanges[project]));
+  }
+  Set<Map<String, dynamic>> allAccounts = new Set<Map<String, dynamic>>();
+  List<String> usedIDs = [];
+  for (Map<String, dynamic> account in projectAccountsDetails) {
+    if (usedIDs.contains(account['_account_id'].toString()))
+      continue;
+    usedIDs.add(account['_account_id'].toString());
+    int count = 0;
+    for (String project in projects) {
+      // Add zero if null
+      count += projectAccountsChanges[project][account['_account_id'].toString()] ?? 0;
+    }
+    Map<String, dynamic> orgAccount = {
+      'name': account['name'],
+      'id': account['_account_id'].toString(), // ID is returned as int
+      'email': account['email'],
+      'count': count,
+    };
+    allAccounts.add(orgAccount);
+  }
+  List<Map<String, dynamic>> organizedAccounts = new List.from(allAccounts);
+  organizedAccounts.sort((Map<String, dynamic> ac1, Map<String, dynamic> ac2) {
+    return ac1['count'].compareTo(ac2['count']);
+  });
+  String output = 'Developers on the Fuchsia project, sorted by commit count\n';
+  for (Map<String, dynamic> account in organizedAccounts) {
+    output += '${account['count']} - ${account['id']} - ${account['name']} - ${account['email']}\n';
+  }
+  new File('out/fuchsia.txt').writeAsStringSync(output);
+}
+
 main(List<String> args) {
   // TODO: Switch on args[0] to handle arguments
-  generateNamesList("zircon").then((dynamic unused){
+  makeCombinedNamesList().then((dynamic unused){
     print("Done");
   });
 }
