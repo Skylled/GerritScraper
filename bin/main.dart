@@ -147,7 +147,7 @@ Future<void> generateNamesList(String project, {List<Map<String, dynamic>> accou
   });
   // Dart strings really need Python's `title` convenience method. :(
   String output = 'Developers on the ${project.substring(0, 1).toUpperCase() + project.substring(1)} project, sorted by commit count\n';
-  for (Map<String, dynamic> account in organizedAccounts) {
+  for (Map<String, dynamic> account in organizedAccounts.reversed) {
     output += '${account['count']} - ${account['id']} - ${account['name']} - ${account['email']}\n';
   }
   new File('out/$project.txt').writeAsStringSync(output);
@@ -185,15 +185,15 @@ Future<void> makeCombinedNamesList() async {
     return ac1['count'].compareTo(ac2['count']);
   });
   String output = 'Developers on the Fuchsia project, sorted by commit count\n';
-  for (Map<String, dynamic> account in organizedAccounts) {
-    output += '${account['count']} - ${account['id']} - ${account['name']} - ${account['email']}\n';
+  for (Map<String, dynamic> account in organizedAccounts.reversed) {
+    output += '${account['id']} - ${account['name']} - ${account['email']}\n';
   }
   new File('out/fuchsia.txt').writeAsStringSync(output);
 }
 
 main(List<String> args) {
   // TODO: Switch on args[0] to handle arguments
-  makeCombinedNamesList().then((dynamic unused){
+  generateNamesList("docs").then((dynamic unused){
     print("Done");
   });
 }
