@@ -111,9 +111,39 @@ Future<List< Map<String, dynamic>>> getAccountsDetails(String project, {Map<Stri
   return accounts;
 }
 
-// How do I want info organized in its final state?
+Future<void> generateNamesList(String project, {List<Map<String, dynamic>> accountsDetails, Map<String, int> accountsChanges}) async {
+  if (accountsChanges == null) {
+    print('No changes, loading...');
+    accountsChanges = await getAccountsChanges(project);
+  }
+  if (accountsDetails == null) {
+    print('No accountsDetails, loading...');
+    accountsDetails = await getAccountsDetails(project, accountsChanges: accountsChanges);
+  }
+  List<Map<String, dynamic>> organizedAccounts = [];
+  for (Map<String, dynamic> account in accountsDetails) {
+    Map<String, dynamic> orgAccount = {
+      'name': account['name'],
+      'id': account['_account_id'].toString(), // ID is returned as int
+      'email': account['email'],
+      'count': accountsChanges[account['_account_id'].toString()],
+    };
+    organizedAccounts.add(orgAccount);
+  }
+  organizedAccounts.sort((Map<String, dynamic> ac1, Map<String, dynamic> ac2) {
+    return ac1['count'].compareTo(ac2['count']);
+  });
+  // Dart strings really need Python's `title` convenience method. :(
+  String output = 'Developers on the ${project.substring(0, 1).toUpperCase() + project.substring(1)} project, sorted by commit count\n';
+  for (Map<String, dynamic> account in organizedAccounts) {
+    output += '${account['count']} - ${account['id']} - ${account['name']} - ${account['email']}\n';
+  }
+  new File('out/$project.txt').writeAsStringSync(output);
+}
 
 main(List<String> args) {
   // TODO: Switch on args[0] to handle arguments
-  getAccountsDetails('garnet');
+  generateNamesList("zircon").then((dynamic unused){
+    print("Done");
+  });
 }
