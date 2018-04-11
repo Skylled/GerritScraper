@@ -51,22 +51,34 @@ Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> 
   }
 }
 
-Future<List<Map<String, dynamic>>> getChanges(String project) async {
+Future<Map<String, Map<String, dynamic>>> getChanges(String project) async {
+  File cacheFile = new File('cache/${project}_changes.json');
+  Map cachedChanges = json.decode(cacheFile.readAsStringSync());
+  Map<String, Map<String, dynamic>> changes = cachedChanges.cast<String,Map<String, dynamic>>();
+
   String query = 'project:$project status:merged -roll';
   int start = 0;
-  List<Map<String, dynamic>> entries = [];
-  while (true) {
-    List<Map<String, dynamic>> newEntries = await scrape('changes/', {'q': query, 'S': start.toString()});
-    entries.addAll(newEntries);
-    if (newEntries.length < 500) {
+  bool noDupesFound = true;
+  while (noDupesFound) {
+    List<Map<String, dynamic>> scrapedChanges = await scrape('changes/', {'q': query, 'S': start.toString()});
+    for (Map<String, dynamic> change in scrapedChanges) {
+      if (changes.containsKey(change["id"])) {
+        // Just in case something else in the 500 found is new?
+        noDupesFound = false;
+      } else {
+        changes[change["id"]] = change;
+      }
+    }
+    if (scrapedChanges.length < 500) {
       break;
     }
     start += 500;
   }
+  cacheFile.writeAsStringSync(json.encode(changes));
   if (_debugging) {
-    new File('logs/${project}_changes_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(entries));
+    new File('logs/${project}_changes_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(changes));
   }
-  return entries;
+  return changes;
 }
 
 // TODO: updateChanges function
@@ -74,12 +86,12 @@ Future<List<Map<String, dynamic>>> getChanges(String project) async {
 // Processes 500 commits at a time, until a duplicate is found
 // When found, stop.
 
-Future<Map<String, int>> getAccountsChanges(String project, {List<Map<String, dynamic>> changes}) async {
+Future<Map<String, int>> getAccountsChanges(String project, {Map<String, Map<String, dynamic>> changes}) async {
   Map<String, int> accountChanges = {};
   if (changes == null) {
     changes = await getChanges(project ?? 'garnet');
   }
-  for (Map<String, dynamic> change in changes) {
+  for (Map<String, dynamic> change in changes.values) {
     if (accountChanges.containsKey(change['owner']['_account_id'].toString())) {
       accountChanges[change['owner']['_account_id'].toString()]++;
     } else {
