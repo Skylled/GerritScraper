@@ -114,13 +114,14 @@ Future<dynamic> generateProjects() async {
   if (res.statusCode == HttpStatus.OK) {
     List<String> projectsCache = [];
     Map decJson = json.decode(res.body.substring(5));
-    Map<String, Map<String, dynamic>> projects = decJson.cast<String, dynamic>();
+    Map<String, Map<String, dynamic>> projects = decJson.cast<String, Map<String, dynamic>>();
     String output = "Fuchsia Projects List\n";
     projects.forEach((String name, Map<String, dynamic> data){
       output += "$name - ${data['state']}\n";
       projectsCache.add(name);
     });
     new File('out/projects.txt').writeAsStringSync(output);
+    new File('cache/projects.json').writeAsStringSync(json.encode(projectsCache));
   } else {
     throw new HttpException('Status code: ${res.statusCode}');
   }
