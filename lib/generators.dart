@@ -110,7 +110,7 @@ Future<void> compareToAndroid() async {
 Future<dynamic> generateProjects() async {
   // https://fuchsia-review.googlesource.com/projects/
   // headers: {'Cookie': makeCookie()}
-  Response res = await get('https://fuchsia-review.googlesource.com/projects/');
+  Response res = await get('https://fuchsia-review.googlesource.com/projects/', headers: {'Cookie': makeCookie()});
   if (res.statusCode == HttpStatus.OK) {
     List<String> projectsCache = [];
     Map decJson = json.decode(res.body.substring(5));
