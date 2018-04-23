@@ -106,3 +106,22 @@ Future<void> compareToAndroid() async {
   }
   new File('out/android-fuchsia.txt').writeAsStringSync(output);
 }
+
+Future<dynamic> generateProjects() async {
+  // https://fuchsia-review.googlesource.com/projects/
+  // headers: {'Cookie': makeCookie()}
+  Response res = await get('https://fuchsia-review.googlesource.com/projects/');
+  if (res.statusCode == HttpStatus.OK) {
+    List<String> projectsCache = [];
+    Map decJson = json.decode(res.body.substring(5));
+    Map<String, Map<String, dynamic>> projects = decJson.cast<String, dynamic>();
+    String output = "Fuchsia Projects List\n";
+    projects.forEach((String name, Map<String, dynamic> data){
+      output += "$name - ${data['state']}\n";
+      projectsCache.add(name);
+    });
+    new File('out/projects.txt').writeAsStringSync(output);
+  } else {
+    throw new HttpException('Status code: ${res.statusCode}');
+  }
+}
