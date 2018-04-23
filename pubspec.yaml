@@ -1,4 +1,4 @@
-name: GerritScraper
+name: gerrit_scraper
 description: Designed to pull data from Gerrit
 dependencies:
   http:
