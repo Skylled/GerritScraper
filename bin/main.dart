@@ -53,6 +53,20 @@ Future<Map<String, dynamic>> scrapeAccount(String accountID, {cached = true}) as
   }
 }
 
+Future<bool> scrapeAndroidChanges(String email) async {
+  Response res = await get('https://android-review.googlesource.com/changes/?q=$email&n=10');
+  if (res.statusCode == HttpStatus.OK) {
+    List decJson = json.decode(res.body.substring(5));
+    List<Map<String, dynamic>> foundChanges = decJson.cast<Map<String, dynamic>>();
+    if (foundChanges.length > 0) {
+      return true;
+    }
+    return false;
+  } else {
+    throw new HttpException('Status code: ${res.statusCode}');
+  }
+}
+
 Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> params) async {
   Uri url = new Uri(
     scheme: 'https',
@@ -208,6 +222,39 @@ Future<void> makeCombinedNamesList() async {
     output += '${account['id']} - ${account['name']} - ${account['email']}\n';
   }
   new File('out/fuchsia.txt').writeAsStringSync(output);
+}
+
+Future<void> compareToAndroid() async {
+  // https://fuchsia-review.googlesource.com/accounts/?suggest&q=armansito@google.com&n=10
+  if (!cacheLoaded)
+    loadAccountCache();
+  List<Future> futures = [];
+  List<String> androidDevIDs = [];
+  cachedAccounts.forEach((String accountID, Map<String, dynamic> accountData) {
+    futures.add(() async {
+      if (await scrapeAndroidChanges(accountData["email"]))
+        androidDevIDs.add(accountID);
+    }());
+  });
+  await Future.wait(futures);
+  List<Map<String, dynamic>> organizedAccounts = [];
+  for (String accountID in androidDevIDs) {
+    Map<String, dynamic> accountDetails = cachedAccounts[accountID];
+    Map<String, dynamic> orgAccount = {
+      'name': accountDetails['name'],
+      'id': accountID,
+      'email': accountDetails['email'],
+    };
+    organizedAccounts.add(orgAccount);
+  }
+  organizedAccounts.sort((Map<String, dynamic> ac1, Map<String, dynamic> ac2) {
+    return ac1['name'].compareTo(ac2['name']);
+  });
+  String output = 'Developers who have worked on both Android and Fuchsia\n';
+  for (Map<String, dynamic> account in organizedAccounts) {
+    output += '${account['id']} - ${account['name']} - ${account['email']}\n';
+  }
+  new File('out/android-fuchsia.txt').writeAsStringSync(output);
 }
 
 main(List<String> args) {
