@@ -28,6 +28,10 @@ String makeCookie(){
 
 void loadAccountCache(){
   accountsCacheFile = new File('cache/accounts.json');
+  if (!accountsCacheFile.existsSync()) {
+    accountsCacheFile.createSync(recursive: true);
+    accountsCacheFile.writeAsStringSync('{}');
+  }
   Map decJson = json.decode(accountsCacheFile.readAsStringSync());
   cachedAccounts = decJson.cast<String, Map<String, dynamic>>();
   cacheLoaded = true;
@@ -86,6 +90,10 @@ Future<List<Map<String, dynamic>>> scrape(String endpoint, Map<String, dynamic> 
 
 Future<Map<String, Map<String, dynamic>>> getChanges(String project) async {
   File cacheFile = new File('cache/${project}_changes.json');
+  if (!cacheFile.existsSync()) {
+    cacheFile.createSync(recursive: true);
+    cacheFile.writeAsStringSync('{}');
+  }
   Map cachedChanges = json.decode(cacheFile.readAsStringSync());
   Map<String, Map<String, dynamic>> changes = cachedChanges.cast<String,Map<String, dynamic>>();
 
