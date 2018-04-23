@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'scraper.dart';
 
 Future<Map<String, Map<String, dynamic>>> getChanges(String project) async {
   File cacheFile = new File('cache/${project}_changes.json');
@@ -30,9 +31,6 @@ Future<Map<String, Map<String, dynamic>>> getChanges(String project) async {
     start += 500;
   }
   cacheFile.writeAsStringSync(json.encode(changes));
-  if (_debugging) {
-    new File('logs/${project}_changes_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(changes));
-  }
   return changes;
 }
 
@@ -53,9 +51,6 @@ Future<Map<String, int>> getAccountsChanges(String project, {Map<String, Map<Str
       accountChanges[change['owner']['_account_id'].toString()] = 1;
     }
   }
-  if (_debugging) {
-    new File('logs/${project ?? 'unknown'}_account_changes_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accountChanges));
-  }
   return accountChanges;
 }
 
@@ -72,8 +67,5 @@ Future<List< Map<String, dynamic>>> getAccountsDetails(String project, {Map<Stri
     }());
   });
   await Future.wait(futures);
-  if (_debugging) {
-    new File('logs/${project ?? 'unknown'}_account_details_${DateTime.now().toIso8601String()}.json').writeAsStringSync(json.encode(accounts));
-  }
   return accounts;
 }
