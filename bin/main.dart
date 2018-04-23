@@ -215,10 +215,10 @@ Future<void> makeCombinedNamesList() async {
   }
   List<Map<String, dynamic>> organizedAccounts = new List.from(allAccounts);
   organizedAccounts.sort((Map<String, dynamic> ac1, Map<String, dynamic> ac2) {
-    return ac1['count'].compareTo(ac2['count']);
+    return ac1['name'].compareTo(ac2['name']);
   });
-  String output = 'Developers on the Fuchsia project, sorted by commit count\n';
-  for (Map<String, dynamic> account in organizedAccounts.reversed) {
+  String output = 'Developers on the Fuchsia project, sorted by first name\n';
+  for (Map<String, dynamic> account in organizedAccounts) {
     output += '${account['id']} - ${account['name']} - ${account['email']}\n';
   }
   new File('out/fuchsia.txt').writeAsStringSync(output);
