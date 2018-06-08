@@ -6,6 +6,8 @@ import 'caching.dart';
 import 'processing.dart';
 import 'scraper.dart';
 
+List<String> filter = ["All-Projects", "All-Users", "Commit-Queue", "Public-Projects", "Read-Only"];
+
 Future<void> generateNamesList(String project, {List<Map<String, dynamic>> accountsDetails, Map<String, int> accountsChanges}) async {
   if (accountsChanges == null) {
     accountsChanges = await getAccountsChanges(project);
@@ -122,6 +124,8 @@ Future<dynamic> generateProjects() async {
     Map<String, Map<String, dynamic>> projects = decJson.cast<String, Map<String, dynamic>>();
     String output = "Fuchsia Projects List\n";
     projects.forEach((String name, Map<String, dynamic> data){
+      if (filter.contains(name))
+        return;
       output += "$name - ${data['state']}\n";
       projectsCache.add(name);
     });
