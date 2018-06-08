@@ -8,11 +8,9 @@ import 'scraper.dart';
 
 Future<void> generateNamesList(String project, {List<Map<String, dynamic>> accountsDetails, Map<String, int> accountsChanges}) async {
   if (accountsChanges == null) {
-    print('No changes, loading...');
     accountsChanges = await getAccountsChanges(project);
   }
   if (accountsDetails == null) {
-    print('No accountsDetails, loading...');
     accountsDetails = await getAccountsDetails(project, accountsChanges: accountsChanges);
   }
   List<Map<String, dynamic>> organizedAccounts = [];
@@ -25,17 +23,24 @@ Future<void> generateNamesList(String project, {List<Map<String, dynamic>> accou
     };
     organizedAccounts.add(orgAccount);
   }
+  if (organizedAccounts.isEmpty)
+    return null;
   organizedAccounts.sort((Map<String, dynamic> ac1, Map<String, dynamic> ac2) {
-    return ac1['count'].compareTo(ac2['count']);
+    return ac1['name'].compareTo(ac2['name']);
   });
   // Dart strings really need Python's `title` convenience method. :(
-  String output = 'Developers on the ${project.substring(0, 1).toUpperCase() + project.substring(1)} project, sorted by commit count\n';
-  for (Map<String, dynamic> account in organizedAccounts.reversed) {
-    output += '${account['count']} - ${account['id']} - ${account['name']} - ${account['email']}\n';
+  String output = 'Developers on the ${project.substring(0, 1).toUpperCase() + project.substring(1)} project, sorted by first name\n';
+  for (Map<String, dynamic> account in organizedAccounts) {
+    output += '${account['id']} - ${account['name']} - ${account['email']}\n';
   }
-  new File('out/$project.txt').writeAsStringSync(output);
+  File outFile = new File('out/projects/$project.txt');
+  if (!outFile.existsSync()) {
+    outFile.createSync(recursive: true);
+  }
+  new File('out/projects/$project.txt').writeAsStringSync(output);
 }
 
+// TODO: Refactor this to just use account cache?
 Future<void> makeCombinedNamesList() async {
   List<String> projects = ['zircon', 'garnet', 'peridot', 'topaz'];
   Map<String, Map<String, int>> projectAccountsChanges = {};
