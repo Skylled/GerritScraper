@@ -76,7 +76,7 @@ Future<void> makeCombinedNamesList() async {
   for (Map<String, dynamic> account in organizedAccounts) {
     output += '${account['id']} - ${account['name']} - ${account['email']}\n';
   }
-  new File('out/fuchsia.txt').writeAsStringSync(output);
+  new File('out/layer-devs.txt').writeAsStringSync(output);
 }
 
 Future<void> compareToAndroid() async {
