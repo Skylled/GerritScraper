@@ -8,6 +8,16 @@ import 'scraper.dart';
 
 List<String> filter = ["All-Projects", "All-Users", "Commit-Queue", "Public-Projects", "Read-Only"];
 
+Future<void> generateAllLists() async {
+  List decJson = json.decode(new File('cache/projects.json').readAsStringSync());
+  List<String> projects = decJson.cast<String>();
+  List<Future> futures = [];
+  for (String project in projects) {
+    futures.add(generateNamesList(project));
+  }
+  await Future.wait(futures);
+}
+
 Future<void> generateNamesList(String project, {List<Map<String, dynamic>> accountsDetails, Map<String, int> accountsChanges}) async {
   if (accountsChanges == null) {
     accountsChanges = await getAccountsChanges(project);
