@@ -19,7 +19,7 @@ Future<Map<String, Map<String, dynamic>>> getChanges(String project) async {
     List<Map<String, dynamic>> scrapedChanges = await scrape('changes/', {'q': query, 'S': start.toString()});
     for (Map<String, dynamic> change in scrapedChanges) {
       if (changes.containsKey(change["id"])) {
-        // Just in case something else in the 500 found is new?
+        // Just in case something else in the 500 found is new
         noDupesFound = false;
       } else {
         changes[change["id"]] = change;
